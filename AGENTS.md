@@ -9,8 +9,56 @@ Android project configured with Jetpack Compose + Room. Package: `com.example.fi
 | Document | Location | Description |
 |----------|----------|-------------|
 | Requirements | `docs/REQUIREMENTS.md` | Business requirements, entities, rules, and technical decisions |
+| Design System | `docs/DESIGN_SYSTEM.md` | Visual identity, color tokens, typography, components, UX rules |
 
+## Design System (resumen rápido)
 
+**Filosofía:** Dark-First Neo-Fintech Minimalista con Geometría Bauhaus. Anti-halación, elevation layering, color semántico restringido, composiciones asimétricas de figuras geométricas sólidas.
+
+**Tokens de color (Dark):**
+
+| Token | Valor | Uso |
+|-------|-------|-----|
+| `background` | `#0B0814` | Fondo base (negro violeta) |
+| `surface` | `#16122B` | Tarjetas |
+| `primary` | `#8B5CF6` | Acciones, balance |
+| `income` | `#34D399` | Entradas de dinero |
+| `expense` | `#FB7185` | Salidas de dinero |
+
+**Tokens de color (Light):**
+
+| Token | Valor | Uso |
+|-------|-------|-----|
+| `background` | `#FAF8FF` | Fondo base (blanco lavanda) |
+| `surface` | `#FFFBFE` | Tarjetas |
+| `primary` | `#5B21B6` | Acciones, balance |
+| `income` | `#059669` | Entradas de dinero |
+| `expense` | `#F43F5E` | Salidas de dinero |
+
+**Fuente:** Plus Jakarta Sans (Regular, Medium, SemiBold, Bold). No usar ExtraBold.
+
+**Reglas de composición:**
+- Montos: alineación derecha + `fontFeatureSettings = "tnum"` + color semántico (`+`=income, `-`=expense)
+- Cards: `24.dp` corner radius. Tap→editar, Swipe→eliminar. Fondos con composiciones geométricas asimétricas (círculos, semicírculos, triángulos) cruzadas por líneas finas vectoriales
+- Botones / TextFields: `16.dp` corner radius
+- Botones circulares: totalmente esféricos (`CircleShape`)
+- **Sin divider lines** — usar espaciado + contraste de superficie
+- **Sin Dynamic Color** — consistencia de marca fintech
+- Colores semánticos vía `LocalFinanceColors.current`
+
+**Gráficos de líneas:**
+- Sin ejes de coordenadas (X/Y), sin grid de fondo
+- Nodo de valor máximo: indicador esférico brillante + etiqueta flotante sólida
+
+**Carrusel de cuentas:**
+- `HorizontalPager` donde la tarjeta secundaria asoma sutilmente en el borde de la pantalla
+
+**Componentes:**
+- Iconografía: `Icons.Outlined` de Material 3 (no librerías externas)
+- Empty states: ilustración constructivista geométrica abstracta en tonos `primary_container` + CTA
+- Loading: skeleton screens (no spinners)
+
+**Detalles completos:** Ver `docs/DESIGN_SYSTEM.md`
 
 ## Tech stack
 
