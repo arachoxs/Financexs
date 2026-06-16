@@ -56,23 +56,28 @@ Este documento define la identidad visual, las reglas de experiencia de usuario 
 
 ## 3. Tipografía y Pesos Visuales
 
-### Fuente Oficial: **Plus Jakarta Sans**
+### Font Pairing: **Bricolage Grotesque + DM Sans**
 
-Sans-Serif geométrica con curvas amplias y modernas. Sus proporciones numéricas OpenType garantizan estabilidad visual en balances en tiempo real.
+Se utiliza una estrategia de **font pairing** para separar jerarquías:
+- **Bricolage Grotesque** — Fuente display con personalidad Bauhaus geométrica. Curvas inesperadas y carácter artístico. Se usa para balances, montos principales y títulos de sección.
+- **DM Sans** — Fuente body limpia y geométrica. Alta legibilidad en tamaños pequeños. Se usa para texto de cuerpo, metadata, botones y chips.
 
 ### Pesos y Jerarquía
 
-| Estilo | Tamaño | Peso | Uso | `tnum` |
-|--------|--------|------|-----|--------|
-| `headlineLarge` | 32sp | Bold (700) | Balance total principal | Sí |
-| `headlineMedium` | 28sp | Bold (700) | Montos destacados | Sí |
-| `titleLarge` | 20sp | SemiBold (600) | Títulos de sección | No |
-| `titleMedium` | 16sp | SemiBold (600) | Títulos de componentes, transacciones | No |
-| `bodyLarge` | 16sp | Regular (400) | Texto principal de cuerpo | No |
-| `bodyMedium` | 14sp | Regular (400) | Texto secundario de cuerpo | No |
-| `labelLarge` | 14sp | Medium (500) | Botones, labels de acción | No |
-| `labelMedium` | 12sp | Medium (500) | Chips, badges, metadata | No |
-| `labelSmall` | 11sp | Medium (500) | Texto auxiliar mínimo | No |
+| Estilo | Familia | Tamaño | Peso | Uso | `tnum` |
+|--------|---------|--------|------|-----|--------|
+| `headlineLarge` | Bricolage Grotesque | 32sp | Bold (700) | Balance total principal | Sí |
+| `headlineMedium` | Bricolage Grotesque | 28sp | Bold (700) | Montos destacados | Sí |
+| `headlineSmall` | Bricolage Grotesque | 24sp | SemiBold (600) | Subtítulos display | No |
+| `titleLarge` | Bricolage Grotesque | 20sp | SemiBold (600) | Títulos de sección | No |
+| `titleMedium` | DM Sans | 16sp | SemiBold (600) | Títulos de componentes | No |
+| `titleSmall` | DM Sans | 14sp | SemiBold (600) | Nombres de transacciones | No |
+| `bodyLarge` | DM Sans | 16sp | Regular (400) | Texto principal de cuerpo | No |
+| `bodyMedium` | DM Sans | 14sp | Regular (400) | Texto secundario de cuerpo | No |
+| `bodySmall` | DM Sans | 12sp | Regular (400) | Fechas, timestamps | No |
+| `labelLarge` | DM Sans | 14sp | Medium (500) | Botones, labels de acción | No |
+| `labelMedium` | DM Sans | 12sp | Medium (500) | Chips, badges, metadata | No |
+| `labelSmall` | DM Sans | 11sp | Medium (500) | Texto auxiliar mínimo | No |
 
 **Nota:** No se usa ExtraBold (800) para evitar "glowing" en pantallas AMOLED en dark mode.
 
@@ -147,9 +152,9 @@ val LocalFinanceColors = staticCompositionLocalOf<FinanceColors> {
 // En Theme.kt
 CompositionLocalProvider(
     LocalFinanceColors provides FinanceColors(
-        income = if (darkTheme) Color(0xFF26E6A4) else Color(0xFF00BA88),
-        expense = if (darkTheme) Color(0xFFFF6B8B) else Color(0xFFFF647C),
-        error = if (darkTheme) Color(0xFFFF5252) else Color(0xFFD32F2F)
+        income = if (darkTheme) Color(0xFF34D399) else Color(0xFF059669),
+        expense = if (darkTheme) Color(0xFFFB7185) else Color(0xFFF43F5E),
+        error = if (darkTheme) Color(0xFFEF4444) else Color(0xFFDC2626)
     )
 ) {
     MaterialTheme(colorScheme = colorScheme, ...) { content() }

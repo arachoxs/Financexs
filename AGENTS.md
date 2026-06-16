@@ -35,7 +35,7 @@ Android project configured with Jetpack Compose + Room. Package: `com.example.fi
 | `income` | `#059669` | Entradas de dinero |
 | `expense` | `#F43F5E` | Salidas de dinero |
 
-**Fuente:** Plus Jakarta Sans (Regular, Medium, SemiBold, Bold). No usar ExtraBold.
+**Fuente:** Bricolage Grotesque (Display: Bold, SemiBold) + DM Sans (Body: Regular, Medium, SemiBold, Bold). No usar ExtraBold.
 
 **Reglas de composición:**
 - Montos: alineación derecha + `fontFeatureSettings = "tnum"` + color semántico (`+`=income, `-`=expense)
