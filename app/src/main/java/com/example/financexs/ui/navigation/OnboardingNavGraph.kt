@@ -1,5 +1,9 @@
 package com.example.financexs.ui.navigation
 
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
@@ -9,12 +13,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.example.financexs.di.AppModule
+import com.example.financexs.ui.screens.onboarding.AccountsViewModel
+import com.example.financexs.ui.screens.onboarding.AccountsViewModelFactory
+import com.example.financexs.ui.screens.onboarding.AccountsScreen
 import com.example.financexs.ui.screens.onboarding.OnboardingViewModel
 import com.example.financexs.ui.screens.onboarding.OnboardingViewModelFactory
 import com.example.financexs.ui.screens.onboarding.ProfileScreen
@@ -54,10 +62,37 @@ fun OnboardingNavGraph(
     NavDisplay(
         backStack = backStack,
         onBack = { backStack.removeLastOrNull() },
+        transitionSpec = {
+            slideInHorizontally(
+                initialOffsetX = { it },
+                animationSpec = tween(350)
+            ) togetherWith slideOutHorizontally(
+                targetOffsetX = { -it / 3 },
+                animationSpec = tween(350)
+            )
+        },
+        popTransitionSpec = {
+            slideInHorizontally(
+                initialOffsetX = { -it / 3 },
+                animationSpec = tween(350)
+            ) togetherWith slideOutHorizontally(
+                targetOffsetX = { it },
+                animationSpec = tween(350)
+            )
+        },
+        predictivePopTransitionSpec = {
+            slideInHorizontally(
+                initialOffsetX = { -it / 3 },
+                animationSpec = tween(350)
+            ) togetherWith slideOutHorizontally(
+                targetOffsetX = { it },
+                animationSpec = tween(350)
+            )
+        },
         entryProvider = entryProvider {
             entry<OnboardingWelcome> {
                 WelcomeScreen(
-                    onStartClick = {
+                    onStartClick = dropUnlessResumed {
                         backStack.add(OnboardingProfile)
                     }
                 )
@@ -78,7 +113,31 @@ fun OnboardingNavGraph(
                 )
             }
             entry<OnboardingAccounts> {
-                PlaceholderScreen("Accounts - Bloque 2")
+                val accountsViewModel: AccountsViewModel = viewModel(
+                    factory = AccountsViewModelFactory(AppModule.cuentaRepository)
+                )
+                val uiState by accountsViewModel.uiState.collectAsState()
+                val moneda = viewModel.uiState.value.monedaSeleccionada.codigo
+
+                AccountsScreen(
+                    uiState = uiState,
+                    onNewAccount = { accountsViewModel.showNewAccountForm(moneda) },
+                    onEditAccount = accountsViewModel::showEditAccount,
+                    onDeleteRequest = accountsViewModel::requestDelete,
+                    onDismissForm = accountsViewModel::dismissForm,
+                    onNombreChange = accountsViewModel::updateNombre,
+                    onColorSelect = accountsViewModel::updateColor,
+                    onIconSelect = accountsViewModel::updateIcono,
+                    onSaldoChange = accountsViewModel::updateSaldo,
+                    onSaveCuenta = {
+                        accountsViewModel.saveCuenta {}
+                    },
+                    onConfirmDelete = accountsViewModel::confirmDelete,
+                    onDismissDelete = accountsViewModel::dismissDeleteConfirm,
+                    onNextClick = dropUnlessResumed {
+                        backStack.add(OnboardingCategoriesExpense)
+                    }
+                )
             }
             entry<OnboardingCategoriesExpense> {
                 PlaceholderScreen("Categories Expense - Bloque 3")
