@@ -5,12 +5,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
+import com.example.financexs.di.AppModule
+import com.example.financexs.ui.screens.onboarding.OnboardingViewModel
+import com.example.financexs.ui.screens.onboarding.OnboardingViewModelFactory
+import com.example.financexs.ui.screens.onboarding.ProfileScreen
+import com.example.financexs.ui.screens.onboarding.WelcomeScreen
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -39,33 +47,46 @@ fun OnboardingNavGraph(
     onComplete: () -> Unit = {}
 ) {
     val backStack = rememberNavBackStack(OnboardingWelcome)
+    val viewModel: OnboardingViewModel = viewModel(
+        factory = OnboardingViewModelFactory(AppModule.perfilRepository)
+    )
 
     NavDisplay(
         backStack = backStack,
         onBack = { backStack.removeLastOrNull() },
         entryProvider = entryProvider {
             entry<OnboardingWelcome> {
-                // Placeholder - Se implementará en Bloque 1
-                PlaceholderScreen("Welcome - Bloque 1")
+                WelcomeScreen(
+                    onStartClick = {
+                        backStack.add(OnboardingProfile)
+                    }
+                )
             }
             entry<OnboardingProfile> {
-                // Placeholder - Se implementará en Bloque 1
-                PlaceholderScreen("Profile - Bloque 1")
+                val uiState by viewModel.uiState.collectAsState()
+
+                ProfileScreen(
+                    uiState = uiState,
+                    onNombreChange = viewModel::updateNombre,
+                    onMonedaSelect = viewModel::updateMoneda,
+                    onTemaSelect = viewModel::updateTema,
+                    onNextClick = {
+                        viewModel.validateAndSave {
+                            backStack.add(OnboardingAccounts)
+                        }
+                    }
+                )
             }
             entry<OnboardingAccounts> {
-                // Placeholder - Se implementará en Bloque 2
                 PlaceholderScreen("Accounts - Bloque 2")
             }
             entry<OnboardingCategoriesExpense> {
-                // Placeholder - Se implementará en Bloque 3
                 PlaceholderScreen("Categories Expense - Bloque 3")
             }
             entry<OnboardingCategoriesIncome> {
-                // Placeholder - Se implementará en Bloque 4
                 PlaceholderScreen("Categories Income - Bloque 4")
             }
             entry<OnboardingBudgets> {
-                // Placeholder - Se implementará en Bloque 5
                 PlaceholderScreen("Budgets - Bloque 5")
             }
             entry<Home> {

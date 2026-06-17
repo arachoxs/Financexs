@@ -5,7 +5,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.CompositionLocalProvider
+import com.example.financexs.data.local.enums.TemaApp
 
 private val DarkColorScheme = darkColorScheme(
     primary = FinancePrimaryDark,
@@ -35,9 +38,17 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun FinancexsTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
+    val temaActual by ThemeManager.currentTheme.collectAsState()
+    val isSystemDark = isSystemInDarkTheme()
+
+    val darkTheme = when (temaActual) {
+        TemaApp.SISTEMA -> isSystemDark
+        TemaApp.OSCURO -> true
+        TemaApp.CLARO -> false
+    }
+
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     val financeColors = if (darkTheme) DarkFinanceColors else LightFinanceColors
 
