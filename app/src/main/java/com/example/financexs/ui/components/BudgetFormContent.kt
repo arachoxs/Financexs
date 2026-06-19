@@ -15,18 +15,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowDropDown
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,6 +39,7 @@ data class BudgetFormState(
 fun BudgetFormContent(
     state: BudgetFormState,
     categorias: List<Categoria>,
+    icons: List<IconOption>,
     onCategoriaSelect: (Long) -> Unit,
     onLimiteChange: (String) -> Unit,
     onPeriodoSelect: (PeriodoPresupuesto) -> Unit,
@@ -65,11 +57,13 @@ fun BudgetFormContent(
             Spacer(modifier = Modifier.height(12.dp))
         }
 
-        // Categoría dropdown
+        // Categoría dropdown — reusable component
         CategoriaDropdown(
             categorias = categorias,
+            icons = icons,
             selectedId = state.categoriaId,
             onSelect = onCategoriaSelect,
+            label = "Categoría de gasto",
             error = state.categoriaError
         )
 
@@ -131,89 +125,6 @@ fun BudgetFormContent(
         )
 
         Spacer(modifier = Modifier.height(8.dp))
-    }
-}
-
-@Composable
-private fun CategoriaDropdown(
-    categorias: List<Categoria>,
-    selectedId: Long,
-    onSelect: (Long) -> Unit,
-    error: String?
-) {
-    var expanded by remember { mutableStateOf(false) }
-    val selectedCategoria = categorias.find { it.id == selectedId }
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Categoría de gasto",
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        if (error != null) {
-            Text(
-                text = error,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error
-            )
-        }
-    }
-
-    Spacer(modifier = Modifier.height(8.dp))
-
-    Box {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .clickable { expanded = true }
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (selectedCategoria != null) {
-                Text(
-                    text = selectedCategoria.nombre,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f)
-                )
-            } else {
-                Text(
-                    text = "Seleccionar categoría",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Icon(
-                imageVector = Icons.Outlined.ArrowDropDown,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            categorias.forEach { categoria ->
-                DropdownMenuItem(
-                    text = { Text(categoria.nombre) },
-                    onClick = {
-                        onSelect(categoria.id)
-                        expanded = false
-                    }
-                )
-            }
-        }
     }
 }
 

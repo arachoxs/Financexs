@@ -17,7 +17,8 @@ data class AccountFormState(
     val colorSeleccionado: String = "#8B5CF6",
     val iconoSeleccionado: String = "AccountBalance",
     val saldoInicial: String = "",
-    val moneda: String = "COP"
+    val moneda: String = "COP",
+    val formError: String? = null
 )
 
 @Composable
@@ -31,6 +32,17 @@ fun AccountFormContent(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
+        // Operation error — banner at top
+        if (state.formError != null) {
+            Text(
+                text = state.formError.orEmpty(),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
         FormTextField(
             value = state.nombre,
             onValueChange = onNombreChange,

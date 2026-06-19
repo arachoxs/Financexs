@@ -33,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.dp
 import com.example.financexs.data.local.enums.PeriodoPresupuesto
-import com.example.financexs.domain.model.Categoria
 import com.example.financexs.domain.model.Presupuesto
 import com.example.financexs.ui.components.AddItemCard
 import com.example.financexs.ui.components.BudgetFormContent
@@ -41,6 +40,7 @@ import com.example.financexs.ui.components.BudgetFormState
 import com.example.financexs.ui.components.FormBottomSheet
 import com.example.financexs.ui.components.ItemCard
 import com.example.financexs.ui.components.formatAmountWithSeparators
+import com.example.financexs.ui.components.iconosCategoriasGasto
 
 @Composable
 fun BudgetsScreen(
@@ -110,9 +110,9 @@ fun BudgetsScreen(
                             PeriodoPresupuesto.SEMANAL -> "Semanal"
                             PeriodoPresupuesto.MENSUAL -> "Mensual"
                         }
-                        val icon = com.example.financexs.ui.components.iconosCategoriasGasto
+                        val icon = iconosCategoriasGasto
                             .find { it.name == categoria?.icono }?.icon
-                            ?: com.example.financexs.ui.components.iconosCategoriasGasto.first().icon
+                            ?: iconosCategoriasGasto.first().icon
 
                         ItemCard(
                             nombre = categoria?.nombre ?: "Sin categoría",
@@ -198,6 +198,7 @@ fun BudgetsScreen(
                     formError = uiState.formError
                 ),
                 categorias = uiState.categoriasGasto,
+                icons = iconosCategoriasGasto,
                 onCategoriaSelect = onCategoriaSelect,
                 onLimiteChange = onLimiteChange,
                 onPeriodoSelect = onPeriodoSelect
