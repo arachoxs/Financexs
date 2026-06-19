@@ -4,14 +4,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
@@ -27,42 +23,19 @@ data class AccountFormState(
 @Composable
 fun AccountFormContent(
     state: AccountFormState,
+    icons: List<IconOption> = iconosCuentas,
     onNombreChange: (String) -> Unit,
     onColorSelect: (String) -> Unit,
     onIconSelect: (String) -> Unit,
-    onSaldoChange: (String) -> Unit
+    onSaldoChange: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Column {
-        Text(
-            text = "Nombre",
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
+    Column(modifier = modifier) {
+        FormTextField(
             value = state.nombre,
             onValueChange = onNombreChange,
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = {
-                Text(
-                    text = "Ej: Efectivo, Banco, Tarjeta",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            },
-            isError = state.nombreError != null,
-            supportingText = if (state.nombreError != null) {
-                { Text(text = state.nombreError, color = MaterialTheme.colorScheme.error) }
-            } else null,
-            shape = RoundedCornerShape(16.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                unfocusedBorderColor = Color.Transparent,
-                focusedBorderColor = MaterialTheme.colorScheme.primary
-            ),
-            singleLine = true
+            placeholder = "Ej: Efectivo, Banco, Tarjeta",
+            error = state.nombreError
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -91,6 +64,7 @@ fun AccountFormContent(
         Spacer(modifier = Modifier.height(8.dp))
 
         IconPicker(
+            icons = icons,
             selectedIcon = state.iconoSeleccionado,
             onIconSelect = onIconSelect
         )

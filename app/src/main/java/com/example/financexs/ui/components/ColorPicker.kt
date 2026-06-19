@@ -20,7 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
-val coloresCuentas = listOf(
+val coloresDisponibles = listOf(
     "#8B5CF6",
     "#3B82F6",
     "#10B981",
@@ -45,7 +45,7 @@ fun ColorPicker(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        items(coloresCuentas) { colorHex ->
+        items(coloresDisponibles) { colorHex ->
             val color = Color(android.graphics.Color.parseColor(colorHex))
             val isSelected = colorHex == selectedColor
 

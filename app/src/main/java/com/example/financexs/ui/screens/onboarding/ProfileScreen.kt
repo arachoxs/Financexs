@@ -18,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Settings
@@ -27,19 +28,18 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.financexs.data.local.enums.TemaApp
 import com.example.financexs.domain.model.Moneda
 import com.example.financexs.domain.model.monedasDisponibles
+import com.example.financexs.ui.components.FormTextField
 
 @Composable
 fun ProfileScreen(
@@ -47,117 +47,120 @@ fun ProfileScreen(
     onNombreChange: (String) -> Unit,
     onMonedaSelect: (Moneda) -> Unit,
     onTemaSelect: (TemaApp) -> Unit,
+    onBackClick: () -> Unit,
     onNextClick: () -> Unit
 ) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp)
     ) {
-        Spacer(modifier = Modifier.height(60.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp)
+        ) {
+            Spacer(modifier = Modifier.height(60.dp))
 
-        Text(
-            text = "Tu Perfil",
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+            Text(
+                text = "Tu Perfil",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Text(
-            text = "Configura tu información básica",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+            Text(
+                text = "Configura tu información básica",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
-        Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-        // Nombre
-        Text(
-            text = "Nombre",
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                // Nombre
+                FormTextField(
+                    value = uiState.nombre,
+                    onValueChange = onNombreChange,
+                    placeholder = "Tu nombre",
+                    error = uiState.nombreError
+                )
 
-        Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(28.dp))
 
-        OutlinedTextField(
-            value = uiState.nombre,
-            onValueChange = onNombreChange,
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = {
+                // Moneda
                 Text(
-                    text = "Tu nombre",
+                    text = "Moneda principal",
+                    style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            },
-            isError = uiState.nombreError != null,
-            supportingText = uiState.nombreError?.let { error ->
-                { Text(text = error, color = MaterialTheme.colorScheme.error) }
-            },
-            shape = RoundedCornerShape(16.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                unfocusedBorderColor = Color.Transparent,
-                focusedBorderColor = MaterialTheme.colorScheme.primary
-            ),
-            singleLine = true
-        )
 
-        Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-        // Moneda
-        Text(
-            text = "Moneda principal",
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+                MonedaGrid(
+                    monedas = monedasDisponibles,
+                    selected = uiState.monedaSeleccionada,
+                    onSelect = onMonedaSelect
+                )
 
-        Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(28.dp))
 
-        MonedaGrid(
-            monedas = monedasDisponibles,
-            selected = uiState.monedaSeleccionada,
-            onSelect = onMonedaSelect
-        )
+                // Tema
+                Text(
+                    text = "Tema visual",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
 
-        Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-        // Tema
-        Text(
-            text = "Tema visual",
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+                TemaSelector(
+                    selected = uiState.temaSeleccionado,
+                    onSelect = onTemaSelect
+                )
+            }
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        TemaSelector(
-            selected = uiState.temaSeleccionado,
-            onSelect = onTemaSelect
-        )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onBackClick,
+                    modifier = Modifier.size(48.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                        contentDescription = "Atrás"
+                    )
+                }
 
-        Spacer(modifier = Modifier.height(40.dp))
+                Button(
+                    onClick = onNextClick,
+                    modifier = Modifier.weight(1f),
+                    enabled = !uiState.isSaving,
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text(
+                        text = if (uiState.isSaving) "Guardando..." else "Siguiente",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            }
 
-        // Botón Siguiente
-        Button(
-            onClick = onNextClick,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !uiState.isSaving,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            )
-        ) {
-            Text(
-                text = if (uiState.isSaving) "Guardando..." else "Siguiente",
-                style = MaterialTheme.typography.labelLarge
-            )
+            Spacer(modifier = Modifier.height(40.dp))
         }
-
-        Spacer(modifier = Modifier.height(40.dp))
     }
 }
 

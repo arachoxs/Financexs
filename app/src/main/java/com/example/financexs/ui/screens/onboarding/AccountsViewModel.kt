@@ -98,6 +98,16 @@ class AccountsViewModel(
             return
         }
 
+        val nombreTrimmed = state.nombreCuenta.trim()
+        val existsInSameType = state.cuentas.any {
+            it.nombre.equals(nombreTrimmed, ignoreCase = true) &&
+                it.id != state.editingCuenta?.id
+        }
+        if (existsInSameType) {
+            _uiState.update { it.copy(nombreError = "Ya existe una cuenta con ese nombre") }
+            return
+        }
+
         val saldo = state.saldoInicial.toBigDecimalOrNull() ?: BigDecimal.ZERO
 
         _uiState.update { it.copy(isSaving = true, nombreError = null) }
@@ -106,7 +116,7 @@ class AccountsViewModel(
             try {
                 val cuenta = Cuenta(
                     id = state.editingCuenta?.id ?: 0,
-                    nombre = state.nombreCuenta.trim(),
+                    nombre = nombreTrimmed,
                     color = state.colorSeleccionado,
                     icono = state.iconoSeleccionado,
                     saldo = saldo
@@ -121,7 +131,7 @@ class AccountsViewModel(
                 _uiState.update { it.copy(isSaving = false, showDialog = false, editingCuenta = null) }
                 onSuccess()
             } catch (e: Exception) {
-                _uiState.update { it.copy(isSaving = false) }
+                _uiState.update { it.copy(isSaving = false, nombreError = "Error al guardar. Intenta de nuevo.") }
             }
         }
     }

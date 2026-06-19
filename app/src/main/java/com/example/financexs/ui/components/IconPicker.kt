@@ -14,27 +14,44 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountBalance
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
+import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.CreditCard
+import androidx.compose.material.icons.outlined.CurrencyExchange
+import androidx.compose.material.icons.outlined.DirectionsCar
+import androidx.compose.material.icons.outlined.Eco
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.Flight
+import androidx.compose.material.icons.outlined.Forum
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Headphones
+import androidx.compose.material.icons.outlined.LocalHospital
 import androidx.compose.material.icons.outlined.Money
+import androidx.compose.material.icons.outlined.MusicNote
+import androidx.compose.material.icons.outlined.Pets
 import androidx.compose.material.icons.outlined.Payments
+import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Receipt
+import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.Savings
+import androidx.compose.material.icons.outlined.School
+import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material.icons.outlined.SportsEsports
 import androidx.compose.material.icons.outlined.Store
 import androidx.compose.material.icons.outlined.TrendingUp
 import androidx.compose.material.icons.outlined.Wallet
+import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material.icons.outlined.Work
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
 data class IconOption(
     val name: String,
-    val icon: ImageVector
+    val icon: androidx.compose.ui.graphics.vector.ImageVector
 )
 
 val iconosCuentas = listOf(
@@ -52,8 +69,41 @@ val iconosCuentas = listOf(
     IconOption("AccountBalanceWallet", Icons.Outlined.AccountBalanceWallet)
 )
 
+val iconosCategoriasGasto = listOf(
+    IconOption("Restaurant", Icons.Outlined.Restaurant),
+    IconOption("DirectionsCar", Icons.Outlined.DirectionsCar),
+    IconOption("ShoppingCart", Icons.Outlined.ShoppingCart),
+    IconOption("Home", Icons.Outlined.Home),
+    IconOption("LocalHospital", Icons.Outlined.LocalHospital),
+    IconOption("School", Icons.Outlined.School),
+    IconOption("SportsEsports", Icons.Outlined.SportsEsports),
+    IconOption("Pets", Icons.Outlined.Pets),
+    IconOption("Wifi", Icons.Outlined.Wifi),
+    IconOption("Flight", Icons.Outlined.Flight),
+    IconOption("Forum", Icons.Outlined.Forum),
+    IconOption("MusicNote", Icons.Outlined.MusicNote),
+    IconOption("Headphones", Icons.Outlined.Headphones),
+    IconOption("Phone", Icons.Outlined.Phone),
+    IconOption("Eco", Icons.Outlined.Eco),
+    IconOption("Favorite", Icons.Outlined.Favorite)
+)
+
+val iconosCategoriasIngreso = listOf(
+    IconOption("Work", Icons.Outlined.Work),
+    IconOption("TrendingUp", Icons.Outlined.TrendingUp),
+    IconOption("AccountBalance", Icons.Outlined.AccountBalance),
+    IconOption("CardGiftcard", Icons.Outlined.CardGiftcard),
+    IconOption("Sell", Icons.Outlined.Sell),
+    IconOption("AccountBalanceWallet", Icons.Outlined.AccountBalanceWallet),
+    IconOption("Savings", Icons.Outlined.Savings),
+    IconOption("CurrencyExchange", Icons.Outlined.CurrencyExchange),
+    IconOption("Receipt", Icons.Outlined.Receipt),
+    IconOption("Favorite", Icons.Outlined.Favorite)
+)
+
 @Composable
 fun IconPicker(
+    icons: List<IconOption>,
     selectedIcon: String,
     onIconSelect: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -62,7 +112,7 @@ fun IconPicker(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(iconosCuentas) { option ->
+        items(icons) { option ->
             val isSelected = option.name == selectedIcon
 
             Box(

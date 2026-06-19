@@ -23,6 +23,9 @@ import com.example.financexs.di.AppModule
 import com.example.financexs.ui.screens.onboarding.AccountsViewModel
 import com.example.financexs.ui.screens.onboarding.AccountsViewModelFactory
 import com.example.financexs.ui.screens.onboarding.AccountsScreen
+import com.example.financexs.ui.screens.onboarding.CategoriesViewModel
+import com.example.financexs.ui.screens.onboarding.CategoriesViewModelFactory
+import com.example.financexs.ui.screens.onboarding.CategoriesScreen
 import com.example.financexs.ui.screens.onboarding.OnboardingViewModel
 import com.example.financexs.ui.screens.onboarding.OnboardingViewModelFactory
 import com.example.financexs.ui.screens.onboarding.ProfileScreen
@@ -39,13 +42,7 @@ data object OnboardingProfile : NavKey
 data object OnboardingAccounts : NavKey
 
 @Serializable
-data object OnboardingCategoriesExpense : NavKey
-
-@Serializable
-data object OnboardingCategoriesIncome : NavKey
-
-@Serializable
-data object OnboardingBudgets : NavKey
+data object OnboardingCategories : NavKey
 
 @Serializable
 data object Home : NavKey
@@ -105,7 +102,10 @@ fun OnboardingNavGraph(
                     onNombreChange = viewModel::updateNombre,
                     onMonedaSelect = viewModel::updateMoneda,
                     onTemaSelect = viewModel::updateTema,
-                    onNextClick = {
+                    onBackClick = dropUnlessResumed {
+                        backStack.removeLastOrNull()
+                    },
+                    onNextClick = dropUnlessResumed {
                         viewModel.validateAndSave {
                             backStack.add(OnboardingAccounts)
                         }
@@ -134,19 +134,40 @@ fun OnboardingNavGraph(
                     },
                     onConfirmDelete = accountsViewModel::confirmDelete,
                     onDismissDelete = accountsViewModel::dismissDeleteConfirm,
+                    onBackClick = dropUnlessResumed {
+                        backStack.removeLastOrNull()
+                    },
                     onNextClick = dropUnlessResumed {
-                        backStack.add(OnboardingCategoriesExpense)
+                        backStack.add(OnboardingCategories)
                     }
                 )
             }
-            entry<OnboardingCategoriesExpense> {
-                PlaceholderScreen("Categories Expense - Bloque 3")
-            }
-            entry<OnboardingCategoriesIncome> {
-                PlaceholderScreen("Categories Income - Bloque 4")
-            }
-            entry<OnboardingBudgets> {
-                PlaceholderScreen("Budgets - Bloque 5")
+            entry<OnboardingCategories> {
+                val categoriesViewModel: CategoriesViewModel = viewModel(
+                    factory = CategoriesViewModelFactory(AppModule.categoriaRepository)
+                )
+                val uiState by categoriesViewModel.uiState.collectAsState()
+
+                CategoriesScreen(
+                    uiState = uiState,
+                    onTipoSelect = categoriesViewModel::selectTipo,
+                    onNewCategory = categoriesViewModel::showNewCategoryForm,
+                    onEditCategory = categoriesViewModel::showEditCategory,
+                    onDeleteRequest = categoriesViewModel::requestDelete,
+                    onDismissForm = categoriesViewModel::dismissForm,
+                    onNombreChange = categoriesViewModel::updateNombre,
+                    onColorSelect = categoriesViewModel::updateColor,
+                    onIconSelect = categoriesViewModel::updateIcono,
+                    onSaveCategoria = { categoriesViewModel.saveCategoria {} },
+                    onConfirmDelete = categoriesViewModel::confirmDelete,
+                    onDismissDelete = categoriesViewModel::dismissDeleteConfirm,
+                    onBackClick = dropUnlessResumed {
+                        backStack.removeLastOrNull()
+                    },
+                    onNextClick = dropUnlessResumed {
+                        backStack.add(Home)
+                    }
+                )
             }
             entry<Home> {
                 LaunchedEffect(Unit) {

@@ -2,341 +2,220 @@
 
 ## Project state
 
-Android project configured with Jetpack Compose + Room. Package: `com.example.financexs`.
+Early-stage Android finance app (personal finance, 100% local storage). Package: `com.example.financexs`. Currently the **onboarding flow** is implemented (welcome, profile, accounts, categories). Home screen and CRUD not started.
 
-## Documentation
+## Docs
 
-| Document | Location | Description |
-|----------|----------|-------------|
-| Requirements | `docs/REQUIREMENTS.md` | Business requirements, entities, rules, and technical decisions |
-| Design System | `docs/DESIGN_SYSTEM.md` | Visual identity, color tokens, typography, components, UX rules |
+| Doc | Path | Notes |
+|-----|------|-------|
+| Requirements | `docs/REQUIREMENTS.md` | Business rules, entities, implementation order |
+| Design System | `docs/DESIGN_SYSTEM.md` | Tokens, typography, components, UX rules |
 
-## Design System (resumen rápido)
+## Build & run
 
-**Filosofía:** Dark-First Neo-Fintech Minimalista con Geometría Bauhaus. Anti-halación, elevation layering, color semántico restringido, composiciones asimétricas de figuras geométricas sólidas.
+```bash
+./gradlew assembleDebug          # build debug APK
+./gradlew test                   # unit tests (only ExampleUnitTest exists)
+./gradlew connectedAndroidTest   # instrumented tests (needs device/emulator)
+```
 
-**Tokens de color (Dark):**
+No CI workflows, lint, or typecheck scripts exist beyond Gradle defaults.
 
-| Token | Valor | Uso |
-|-------|-------|-----|
-| `background` | `#0B0814` | Fondo base (negro violeta) |
-| `surface` | `#16122B` | Tarjetas |
-| `primary` | `#8B5CF6` | Acciones, balance |
-| `income` | `#34D399` | Entradas de dinero |
-| `expense` | `#FB7185` | Salidas de dinero |
+## `android` CLI (installed)
 
-**Tokens de color (Light):**
+```bash
+# Run app on device/emulator
+android run
+android run --debug
 
-| Token | Valor | Uso |
-|-------|-------|-----|
-| `background` | `#FAF8FF` | Fondo base (blanco lavanda) |
-| `surface` | `#FFFBFE` | Tarjetas |
-| `primary` | `#5B21B6` | Acciones, balance |
-| `income` | `#059669` | Entradas de dinero |
-| `expense` | `#F43F5E` | Salidas de dinero |
+# UI inspection (faster than screenshots for debugging)
+android layout              # full UI tree as JSON
+android layout --diff       # only changes since last call
 
-**Fuente:** Bricolage Grotesque (Display: Bold, SemiBold) + DM Sans (Body: Regular, Medium, SemiBold, Bold). No usar ExtraBold.
+# Screenshots
+android screen capture -o screen.png
+android screen capture --annotate -o screen.png  # labeled screenshot
 
-**Reglas de composición:**
-- Montos: alineación derecha + `fontFeatureSettings = "tnum"` + color semántico (`+`=income, `-`=expense)
-- Cards: `24.dp` corner radius. Tap→editar, Swipe→eliminar. Fondos con composiciones geométricas asimétricas (círculos, semicírculos, triángulos) cruzadas por líneas finas vectoriales
-- Botones / TextFields: `16.dp` corner radius
-- Botones circulares: totalmente esféricos (`CircleShape`)
-- **Sin divider lines** — usar espaciado + contraste de superficie
-- **Sin Dynamic Color** — consistencia de marca fintech
-- Colores semánticos vía `LocalFinanceColors.current`
+# Emulators
+android emulator list
+android emulator start <name>
 
-**Gráficos de líneas:**
-- Sin ejes de coordenadas (X/Y), sin grid de fondo
-- Nodo de valor máximo: indicador esférico brillante + etiqueta flotante sólida
+# Official Android docs lookup
+android docs search "Jetpack Compose basics"
+android docs fetch kb://android/develop/ui/compose/tutorial
 
-**Carrusel de cuentas:**
-- `HorizontalPager` donde la tarjeta secundaria asoma sutilmente en el borde de la pantalla
+# SDK management
+android sdk list --all
+android sdk install <package>@<version>
 
-**Componentes:**
-- Iconografía: `Icons.Outlined` de Material 3 (no librerías externas)
-- Empty states: ilustración constructivista geométrica abstracta en tonos `primary_container` + CTA
-- Loading: skeleton screens (no spinners)
+# Skills
+android skills list
+android skills find <keyword>
+```
 
-**Detalles completos:** Ver `docs/DESIGN_SYSTEM.md`
+**UI inspection workflow**: when the user asks for a UI change, run `android layout` first to read the current component tree before modifying code. Requires a device/emulator with the app open on the target screen.
 
-## Tech stack
+## Naming convention — Spanish throughout
+
+All entity, DAO, model, and repository names are in **Spanish**. Do not introduce English names.
+
+| Layer | Examples |
+|-------|----------|
+| Entity | `PerfilEntity`, `CuentaEntity`, `CategoriaEntity`, `MovimientoEntity`, `PresupuestoEntity` |
+| DAO | `PerfilDao`, `CuentaDao`, `CategoriaDao`, `MovimientoDao`, `PresupuestoDao` |
+| Model | `Perfil`, `Cuenta`, `Categoria`, `Moneda` |
+| Repository | `PerfilRepository`, `CuentaRepository`, `CategoriaRepository` |
+
+No `Loan` entity exists yet — it's listed as a future feature in REQUIREMENTS.md §9.1.
+
+## Architecture: MVVM + Repository (manual DI)
+
+### Data flow
+
+```
+Composable → ViewModel → Repository → DAO → Room Database
+```
+
+UI never calls Repository directly.
+
+### Entity ↔ Model mapping
+
+Each entity has a `*Mapper.kt` file in `data/local/entity/` with `toDomain()` / `toEntity()` extension functions. Models are plain Kotlin data classes in `domain/model/`.
+
+### Dependency injection — `AppModule` object
+
+No Hilt. Dependencies wired in `di/AppModule.kt`:
+
+```kotlin
+object AppModule {
+    fun init(context: Context)  // called once from FinanceXSApp.onCreate()
+
+    val perfilRepository: PerfilRepository by lazy { ... }
+    val cuentaRepository: CuentaRepository by lazy { ... }
+    val categoriaRepository: CategoriaRepository by lazy { ... }
+}
+```
+
+Always call `AppModule.init(context)` before accessing any dependency. ViewModels receive repositories via `ViewModelProvider.Factory` (see `OnboardingViewModelFactory` pattern).
+
+### Navigation — Navigation3
+
+Uses `NavKey` + `@Serializable` data objects for routes, NOT string-based NavGraph. Routes are defined in `ui/navigation/OnboardingNavGraph.kt`. Navigation uses `NavDisplay` with `entryProvider`.
+
+## Current implementation status
+
+| Feature | Status |
+|---------|--------|
+| Room DB (5 entities, v1) | Done |
+| Onboarding: Welcome screen | Done |
+| Onboarding: Profile screen | Done |
+| Onboarding: Accounts, Categories, Budgets screens | Placeholder stubs |
+| Home screen | Not started |
+| Movements CRUD | Not started |
+| Budget logic | Not started |
+
+## Key tech stack
 
 | Property | Value |
 |----------|-------|
 | AGP | 9.2.1 (built-in Kotlin) |
 | compileSdk | 36 (minorApiLevel 1) |
 | minSdk | 26 |
-| targetSdk | 36 |
+| Java | 17 |
 | Build script | Kotlin DSL (.kts) |
 | Version catalog | `gradle/libs.versions.toml` |
 | Config cache | enabled |
-| Java | 17 |
-
-**Decided stack**: Jetpack Compose (UI) + Room (local storage).
-
-**Libraries added**: Compose BOM 2026.05.01, Compose compiler 2.4.0, Room 2.8.4, KSP 2.3.9, Coroutines 1.11.0, Navigation3 1.1.2, Adaptive 1.2.0.
-
-## Architecture: MVVM + Repository
-
-### Overview
-
-The app follows the **MVVM (Model-View-ViewModel)** pattern with a **Repository layer** for data access. This provides clear separation of concerns and testability.
-
-### Layer Responsibilities
-
-```
-┌─────────────────────────────────────────────────────┐
-│                    UI Layer                          │
-│  Composables (Screens) ← ViewModels ← State/Flow   │
-├─────────────────────────────────────────────────────┤
-│                 Domain Layer (optional)              │
-│              Use Cases / Business Logic              │
-├─────────────────────────────────────────────────────┤
-│                  Data Layer                          │
-│         Repositories ← DAOs ← Room Database         │
-└─────────────────────────────────────────────────────┘
-```
-
-### Package Structure
-
-```
-com.example.financexs/
-├── data/
-│   ├── local/
-│   │   ├── database/
-│   │   │   ├── AppDatabase.kt          # @Database class
-│   │   │   └── Converters.kt           # TypeConverters
-│   │   ├── dao/
-│   │   │   ├── AccountDao.kt
-│   │   │   ├── TransactionDao.kt
-│   │   │   ├── CategoryDao.kt
-│   │   │   ├── BudgetDao.kt
-│   │   │   ├── LoanDao.kt
-│   │   │   └── ...
-│   │   └── entity/
-│   │       ├── AccountEntity.kt
-│   │       ├── TransactionEntity.kt
-│   │       ├── CategoryEntity.kt
-│   │       ├── BudgetEntity.kt
-│   │       ├── LoanEntity.kt
-│   │       └── ...
-│   └── repository/
-│       ├── AccountRepository.kt
-│       ├── TransactionRepository.kt
-│       ├── CategoryRepository.kt
-│       ├── BudgetRepository.kt
-│       ├── LoanRepository.kt
-│       └── ...
-├── domain/
-│   └── model/
-│       ├── Account.kt
-│       ├── Transaction.kt
-│       ├── Category.kt
-│       ├── Budget.kt
-│       ├── Loan.kt
-│       └── ...
-├── ui/
-│   ├── navigation/
-│   │   └── NavGraph.kt                 # Navigation3 setup
-│   ├── screens/
-│   │   ├── home/
-│   │   │   ├── HomeScreen.kt
-│   │   │   └── HomeViewModel.kt
-│   │   ├── transactions/
-│   │   │   ├── TransactionsScreen.kt
-│   │   │   └── TransactionsViewModel.kt
-│   │   ├── categories/
-│   │   │   ├── CategoriesScreen.kt
-│   │   │   └── CategoriesViewModel.kt
-│   │   ├── loans/
-│   │   │   ├── LoansScreen.kt
-│   │   │   └── LoansViewModel.kt
-│   │   └── settings/
-│   │       ├── SettingsScreen.kt
-│   │       └── SettingsViewModel.kt
-│   └── components/                     # Shared composables
-│       ├── TransactionCard.kt
-│       ├── CategoryChip.kt
-│       └── ...
-└── di/
-    └── AppModule.kt                    # Manual DI container
-```
-
-### Data Flow Rules
-
-1. **UI → ViewModel**: UI calls ViewModel methods (never directly calls Repository)
-2. **ViewModel → Repository**: ViewModel calls Repository methods
-3. **Repository → DAO**: Repository calls DAO methods
-4. **DAO → Database**: DAO executes Room queries
-
-### Entity vs Model
-
-- **Entity** (`data/local/entity/`): Room @Entity classes with annotations, used for database operations
-- **Model** (`domain/model/`): Plain Kotlin data classes used in UI layer, free of Room annotations
-
-### Repository Pattern
-
-Each entity has a corresponding Repository that:
-- Abstracts the data source (Room)
-- Provides suspend functions for async operations
-- Returns Flow<List<T>> for reactive data observation
-- Handles data mapping from Entity → Model
-
-Example:
-```kotlin
-class AccountRepository(private val accountDao: AccountDao) {
-    fun getAllAccounts(): Flow<List<Account>> = 
-        accountDao.getAllAccounts().map { entities -> 
-            entities.map { it.toDomain() } 
-        }
-    
-    suspend fun insertAccount(account: Account) = 
-        accountDao.insert(account.toEntity())
-}
-```
-
-### ViewModel Pattern
-
-Each screen has a corresponding ViewModel that:
-- Holds UI state as StateFlow or MutableState
-- Exposes events for user actions
-- Calls Repository methods
-- Handles business logic (validation, calculations)
-
-Example:
-```kotlin
-class AccountsViewModel(private val repository: AccountRepository) : ViewModel() {
-    private val _accounts = MutableStateFlow<List<Account>>(emptyList())
-    val accounts: StateFlow<List<Account>> = _accounts.asStateFlow()
-    
-    init {
-        viewModelScope.launch {
-            repository.getAllAccounts().collect { _accounts.value = it }
-        }
-    }
-    
-    fun addAccount(account: Account) {
-        viewModelScope.launch { repository.insertAccount(account) }
-    }
-}
-```
-
-### Manual DI (No Hilt)
-
-Since we're not using Hilt, dependencies are provided manually:
-
-```kotlin
-// di/AppModule.kt
-object AppModule {
-    private val database = AppDatabase.getInstance(context)
-    
-    // DAOs
-    private val accountDao = database.accountDao()
-    private val transactionDao = database.transactionDao()
-    
-    // Repositories
-    val accountRepository = AccountRepository(accountDao)
-    val transactionRepository = TransactionRepository(transactionDao)
-    
-    // ViewModels (using ViewModelProvider.Factory)
-    fun provideAccountsViewModel(): AccountsViewModelFactory { ... }
-}
-```
-
-## Build & run
-
-```bash
-# Build debug APK
-./gradlew assembleDebug
-
-# Install + run on connected device/emulator
-android run
-
-# Run with debug flag
-android run --debug
-
-# List connected devices
-adb devices
-```
-
-## Documentation workflow (android CLI)
-
-This is the primary way to get official Android documentation during development:
-
-```bash
-# Step 1: Search for a topic
-android docs search "Jetpack Compose basics"
-android docs search "Room database kotlin"
-android docs search "Hilt dependency injection"
-android docs search "ViewModel lifecycle"
-android docs search "Kotlin coroutines flow"
-
-# Step 2: Fetch full article content (includes Kotlin code examples)
-android docs fetch kb://android/develop/ui/compose/tutorial
-android docs fetch kb://android/training/data-storage/room/index
-android docs fetch kb://android/training/dependency-injection/hilt-android
-```
-
-**When to use**: Before implementing any Jetpack library feature. Search first, fetch the article, then implement following the official patterns.
-
-## UI inspection
-
-```bash
-# Get full UI tree as JSON
-android layout
-
-# Get only changes since last call
-android layout --diff
-
-# Screenshot
-android screen capture -o screen.png
-
-# Annotated screenshot (labels on UI elements)
-android screen capture --annotate -o screen.png
-
-# Resolve annotated label to coordinates
-android screen resolve --screen screen.png --string "#3"
-```
-
-## Skills (installed)
-
-| Skill | Use case |
-|-------|----------|
-| `adaptive` | UI adaptativa (phones, tablets, foldables) |
-| `edge-to-edge` | Edge-to-edge support |
-| `navigation-3` | Navigation3 setup with Compose |
-| `testing-setup` | Testing strategy (unit, UI, screenshot, e2e) |
-| `jetpack-compose-m3` | Wear OS Compose Material3 |
-| `verified-email` | Email verification with Credential Manager |
-| `perfetto-trace-analysis` | Performance trace analysis |
-| `r8-analyzer` | R8/ProGuard optimization |
-| `android-cli` | CLI tool reference |
-
-## Key commands reference
-
-```bash
-# SDK management
-android sdk list --all
-android sdk install <package>@<version>
-
-# Emulator
-android emulator list
-android emulator start <name>
-
-# Skills
-android skills list
-android skills find <keyword>
-android skills add <skill>
-android skills remove <skill>
-
-# Version lookup (check latest library versions)
-android studio version-lookup
-```
+| UI | Compose + Material3 + BOM 2026.05.01 |
+| DB | Room 2.8.4 + KSP 2.3.9 |
+| Nav | Navigation3 1.1.2 |
+| Currency | `BigDecimal` (financial precision) |
+| Dates | `java.time` |
 
 ## Conventions
 
-- All dependencies go through `gradle/libs.versions.toml` — never hardcode versions in `build.gradle.kts`
-- Use `./gradlew` wrapper, never bare `gradle`
+- All dependency versions in `gradle/libs.versions.toml` — never hardcode in `build.gradle.kts`
+- Use `./gradlew`, never bare `gradle`
 - Kotlin DSL only (`.kts` files)
-- Follow android-developer agent patterns in `.opencode/agents/`
+- No Dynamic Color — use `LocalFinanceColors.current` for semantic colors
+- Amount formatting: right-aligned + `fontFeatureSettings = "tnum"` + semantic color
+- Icons: `Icons.Outlined` from Material 3 (no external icon libraries)
+
+## Error handling standard
+
+### Two types of errors
+
+| Type | Example | Display location |
+|------|---------|------------------|
+| **Validation** | "El nombre debe tener al menos 2 caracteres" | `supportingText` under its field |
+| **Operation** | "Error al guardar. Intenta de nuevo." | `formError` banner at the top of the form |
+
+### UiState fields
+
+```kotlin
+data class XxxUiState(
+    // Form fields
+    val nombre: String = "",
+    val icono: String = "",
+
+    // Validation errors — ONE PER FIELD (sufijo `Error`)
+    val nombreError: String? = null,
+    val iconoError: String? = null,
+
+    // Operation error — ONE GENERAL (not field-specific)
+    val formError: String? = null,
+
+    val isSaving: Boolean = false,
+    val showDialog: Boolean = false
+)
+```
+
+### Validation rules
+
+- Validate ALL fields before showing errors — no early `return` inside validation
+- Collect errors in local variables, then set all at once
+- Each `update*` clears ONLY its own validation error
+- `showNewCategoryForm()` / `showEditCategory()` clear ALL errors when opening the form
+- `formError` is cleared at the start of `save()`
+
+### Display rules
+
+- `nombreError` → passed to `FormTextField(error = ...)` — shows as `supportingText`
+- `iconoError` → shown as `Text(bodySmall, error)` below the `IconPicker`
+- `formError` → shown as `Text(bodySmall, error)` at the TOP of the form (banner)
+- NO errors floating between form and buttons
+
+### Visual layout
+
+```
+┌─────────────────────────────────────┐
+│  Error al guardar. Intenta de nuevo.│  ← formError
+│                                     │
+│  Nombre                             │
+│  ┌─────────────────────────────┐    │
+│  │ Alimentación                │    │
+│  └─────────────────────────────┘    │
+│  Ya existe una categoría con ese    │  ← nombreError
+│  nombre                             │
+│                                     │
+│  Icono                              │
+│  [🛒] [🚗] [🏠] [❤️]              │
+│  Selecciona un icono                │  ← iconoError
+│                                     │
+│  [Cancelar]  [Guardar]              │
+└─────────────────────────────────────┘
+```
+
+### Error mapping in Screen
+
+```kotlin
+CategoryFormContent(
+    state = CategoryFormState(
+        nombre = uiState.nombreCategoria,
+        nombreError = uiState.nombreError,
+        icono = uiState.iconoSeleccionado,
+        iconoError = uiState.iconoError,
+        formError = uiState.formError
+    ),
+    ...
+)
+```

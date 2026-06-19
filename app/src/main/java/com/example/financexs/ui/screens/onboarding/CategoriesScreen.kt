@@ -32,31 +32,39 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.dp
-import com.example.financexs.ui.components.AccountFormContent
-import com.example.financexs.ui.components.AccountFormState
+import com.example.financexs.data.local.enums.TipoCategoria
+import com.example.financexs.domain.model.Categoria
 import com.example.financexs.ui.components.AddItemCard
+import com.example.financexs.ui.components.CategoryFormContent
+import com.example.financexs.ui.components.CategoryFormState
+import com.example.financexs.ui.components.CategoryTypeToggle
 import com.example.financexs.ui.components.FormBottomSheet
+import com.example.financexs.ui.components.IconOption
 import com.example.financexs.ui.components.ItemCard
-import com.example.financexs.ui.components.formatAmountWithSeparators
-import com.example.financexs.ui.components.iconosCuentas
+import com.example.financexs.ui.components.iconosCategoriasGasto
+import com.example.financexs.ui.components.iconosCategoriasIngreso
 
 @Composable
-fun AccountsScreen(
-    uiState: AccountsUiState,
-    onNewAccount: () -> Unit,
-    onEditAccount: (com.example.financexs.domain.model.Cuenta) -> Unit,
-    onDeleteRequest: (com.example.financexs.domain.model.Cuenta) -> Unit,
+fun CategoriesScreen(
+    uiState: CategoriesUiState,
+    onTipoSelect: (TipoCategoria) -> Unit,
+    onNewCategory: () -> Unit,
+    onEditCategory: (Categoria) -> Unit,
+    onDeleteRequest: (Categoria) -> Unit,
     onDismissForm: () -> Unit,
     onNombreChange: (String) -> Unit,
     onColorSelect: (String) -> Unit,
     onIconSelect: (String) -> Unit,
-    onSaldoChange: (String) -> Unit,
-    onSaveCuenta: () -> Unit,
+    onSaveCategoria: () -> Unit,
     onConfirmDelete: () -> Unit,
     onDismissDelete: () -> Unit,
     onBackClick: () -> Unit,
     onNextClick: () -> Unit
 ) {
+    val icons = if (uiState.tipoSeleccionado == TipoCategoria.GASTO) iconosCategoriasGasto else iconosCategoriasIngreso
+    val categorias = uiState.categorias
+    val emptyText = if (uiState.tipoSeleccionado == TipoCategoria.GASTO) "Gastos" else "Ingresos"
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -70,7 +78,7 @@ fun AccountsScreen(
             Spacer(modifier = Modifier.height(60.dp))
 
             Text(
-                text = "Tus Cuentas",
+                text = "Tus Categorías",
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -78,45 +86,55 @@ fun AccountsScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Crea al menos una cuenta para comenzar",
+                text = "Configura las categorías para tus movimientos",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            CategoryTypeToggle(
+                selected = uiState.tipoSeleccionado,
+                onSelect = onTipoSelect
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "${uiState.cuentas.size} cuenta${if (uiState.cuentas.size != 1) "s" else ""} creada${if (uiState.cuentas.size != 1) "s" else ""}",
+                text = "${categorias.size} categoría${if (categorias.size != 1) "s" else ""} de $emptyText",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            if (uiState.cuentas.isEmpty()) {
-                EmptyAccountsState(onNewAccount = onNewAccount)
+            if (categorias.isEmpty()) {
+                EmptyCategoriesState(
+                    tipo = emptyText,
+                    onNewCategory = onNewCategory
+                )
             } else {
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    itemsIndexed(uiState.cuentas) { index, cuenta ->
+                    itemsIndexed(categorias) { index, categoria ->
                         ItemCard(
-                            nombre = cuenta.nombre,
-                            colorHex = cuenta.color,
-                            icon = iconosCuentas.find { it.name == cuenta.icono }?.icon
-                                ?: iconosCuentas.first().icon,
-                            subtitulo = "$ ${formatAmountWithSeparators(cuenta.saldo.toPlainString())}",
-                            onEdit = { onEditAccount(cuenta) },
-                            onDelete = { onDeleteRequest(cuenta) },
-                            canDelete = uiState.cuentas.size > 1
+                            nombre = categoria.nombre,
+                            colorHex = categoria.color,
+                            icon = icons.find { it.name == categoria.icono }?.icon
+                                ?: icons.first().icon,
+                            subtitulo = null,
+                            onEdit = { onEditCategory(categoria) },
+                            onDelete = { onDeleteRequest(categoria) },
+                            canDelete = true
                         )
                     }
 
                     item {
                         AddItemCard(
-                            label = "Agregar una cuenta nueva",
-                            onClick = onNewAccount
+                            label = "Agregar una categoría de $emptyText",
+                            onClick = onNewCategory
                         )
                     }
                 }
@@ -143,7 +161,7 @@ fun AccountsScreen(
                 Button(
                     onClick = onNextClick,
                     modifier = Modifier.weight(1f),
-                    enabled = uiState.cuentas.isNotEmpty(),
+                    enabled = uiState.categoriasGasto.isNotEmpty() && uiState.categoriasIngreso.isNotEmpty(),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
@@ -161,22 +179,24 @@ fun AccountsScreen(
 
         FormBottomSheet(
             visible = uiState.showDialog,
-            title = if (uiState.editingCuenta != null) "Editar Cuenta" else "Nueva Cuenta",
+            title = buildString {
+                append(if (uiState.editingCategoria != null) "Editar " else "Nueva ")
+                append("Categoría de ")
+                append(if (uiState.tipoSeleccionado == TipoCategoria.GASTO) "Gasto" else "Ingreso")
+            },
             onDismiss = onDismissForm
         ) {
-            AccountFormContent(
-                state = AccountFormState(
-                    nombre = uiState.nombreCuenta,
-                    nombreError = uiState.nombreError,
-                    colorSeleccionado = uiState.colorSeleccionado,
-                    iconoSeleccionado = uiState.iconoSeleccionado,
-                    saldoInicial = uiState.saldoInicial,
-                    moneda = uiState.moneda
+            CategoryFormContent(
+                state = CategoryFormState(
+                    nombre = uiState.nombreCategoria,
+                    color = uiState.colorSeleccionado,
+                    icono = uiState.iconoSeleccionado,
+                    nombreError = uiState.formError
                 ),
-                onNombreChange = onNombreChange,
+                icons = icons,
+                onNameChange = onNombreChange,
                 onColorSelect = onColorSelect,
-                onIconSelect = onIconSelect,
-                onSaldoChange = onSaldoChange
+                onIconSelect = onIconSelect
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -192,7 +212,7 @@ fun AccountsScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
-                onClick = onSaveCuenta,
+                onClick = onSaveCategoria,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !uiState.isSaving,
                 shape = RoundedCornerShape(16.dp),
@@ -207,18 +227,18 @@ fun AccountsScreen(
             }
         }
 
-        uiState.showDeleteConfirm?.let { cuenta ->
+        uiState.showDeleteConfirm?.let { categoria ->
             AlertDialog(
                 onDismissRequest = onDismissDelete,
                 title = {
                     Text(
-                        text = "Eliminar cuenta",
+                        text = "Eliminar categoría",
                         style = MaterialTheme.typography.titleLarge
                     )
                 },
                 text = {
                     Text(
-                        text = "¿Estás seguro de que deseas eliminar \"${cuenta.nombre}\"?",
+                        text = "¿Estás seguro de que deseas eliminar \"${categoria.nombre}\"?",
                         style = MaterialTheme.typography.bodyLarge
                     )
                 },
@@ -238,7 +258,10 @@ fun AccountsScreen(
 }
 
 @Composable
-private fun EmptyAccountsState(onNewAccount: () -> Unit) {
+private fun EmptyCategoriesState(
+    tipo: String,
+    onNewCategory: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -271,7 +294,7 @@ private fun EmptyAccountsState(onNewAccount: () -> Unit) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Aún no tienes cuentas",
+            text = "Aún no tienes categorías de $tipo",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -279,7 +302,7 @@ private fun EmptyAccountsState(onNewAccount: () -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
 
         Button(
-            onClick = onNewAccount,
+            onClick = onNewCategory,
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary
@@ -292,7 +315,7 @@ private fun EmptyAccountsState(onNewAccount: () -> Unit) {
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Crear primera cuenta",
+                text = "Crear primera categoría",
                 style = MaterialTheme.typography.labelLarge
             )
         }
