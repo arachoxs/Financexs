@@ -18,7 +18,8 @@ import java.math.BigDecimal
         )
     ],
     indices = [
-        Index(value = ["categoriaId"])
+        Index(value = ["categoriaId"]),
+        Index(value = ["categoriaId", "periodo"], unique = true)
     ]
 )
 data class PresupuestoEntity(

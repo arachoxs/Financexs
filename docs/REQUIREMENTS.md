@@ -263,6 +263,14 @@ Pantalla principal de la app.
 
 ---
 
+## 6.5 Pre-despliegue — Pendientes antes de producción
+
+- [ ] **Database Migration**: Actualmente se usa `fallbackToDestructiveMigration(dropAllTables = true)` (borra la DB en cada cambio de versión). Esto es aceptable en desarrollo, pero antes del lanzamiento se debe escribir una **migration real** (`Migration(1, 2)` etc.) para preservar los datos de los usuarios. Referencia: `AppDatabase.kt`
+- [ ] **TypeConverters**: Verificar que todos los enums tengan converters string-based (no ordinals). Actual: `PeriodoPresupuesto`, `TipoCategoria`, `TemaApp`
+- [ ] **Tests de integración**: Agregar tests de DAO y Repository, especialmente para la constraint de unicidad `(categoriaId, periodo)` en presupuestos
+
+---
+
 ## 7. Orden de Implementación
 
 1. **Configuración Inicial**: Flujo de setup + detección de primera vez

@@ -5,9 +5,11 @@ import com.example.financexs.data.local.database.AppDatabase
 import com.example.financexs.data.local.dao.CuentaDao
 import com.example.financexs.data.local.dao.CategoriaDao
 import com.example.financexs.data.local.dao.PerfilDao
+import com.example.financexs.data.local.dao.PresupuestoDao
 import com.example.financexs.data.repository.CuentaRepository
 import com.example.financexs.data.repository.CategoriaRepository
 import com.example.financexs.data.repository.PerfilRepository
+import com.example.financexs.data.repository.PresupuestoRepository
 
 object AppModule {
 
@@ -28,9 +30,11 @@ object AppModule {
     val perfilDao: PerfilDao by lazy { getDatabase().perfilDao() }
     val cuentaDao: CuentaDao by lazy { getDatabase().cuentaDao() }
     val categoriaDao: CategoriaDao by lazy { getDatabase().categoriaDao() }
+    val presupuestoDao: PresupuestoDao by lazy { getDatabase().presupuestoDao() }
 
     // Repositories
     val perfilRepository: PerfilRepository by lazy { PerfilRepository(perfilDao) }
     val cuentaRepository: CuentaRepository by lazy { CuentaRepository(cuentaDao) }
     val categoriaRepository: CategoriaRepository by lazy { CategoriaRepository(categoriaDao) }
+    val presupuestoRepository: PresupuestoRepository by lazy { PresupuestoRepository(presupuestoDao) }
 }

@@ -20,7 +20,7 @@ import com.example.financexs.data.local.entity.PresupuestoEntity
         MovimientoEntity::class,
         PresupuestoEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -42,7 +42,8 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "financexs_database"
-                ).build()
+                ).fallbackToDestructiveMigration(dropAllTables = true)
+                .build()
                 INSTANCE = instance
                 instance
             }

@@ -4,15 +4,10 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavKey
@@ -23,6 +18,9 @@ import com.example.financexs.di.AppModule
 import com.example.financexs.ui.screens.onboarding.AccountsViewModel
 import com.example.financexs.ui.screens.onboarding.AccountsViewModelFactory
 import com.example.financexs.ui.screens.onboarding.AccountsScreen
+import com.example.financexs.ui.screens.onboarding.BudgetsViewModel
+import com.example.financexs.ui.screens.onboarding.BudgetsViewModelFactory
+import com.example.financexs.ui.screens.onboarding.BudgetsScreen
 import com.example.financexs.ui.screens.onboarding.CategoriesViewModel
 import com.example.financexs.ui.screens.onboarding.CategoriesViewModelFactory
 import com.example.financexs.ui.screens.onboarding.CategoriesScreen
@@ -43,6 +41,9 @@ data object OnboardingAccounts : NavKey
 
 @Serializable
 data object OnboardingCategories : NavKey
+
+@Serializable
+data object OnboardingBudgets : NavKey
 
 @Serializable
 data object Home : NavKey
@@ -165,6 +166,32 @@ fun OnboardingNavGraph(
                         backStack.removeLastOrNull()
                     },
                     onNextClick = dropUnlessResumed {
+                        backStack.add(OnboardingBudgets)
+                    }
+                )
+            }
+            entry<OnboardingBudgets> {
+                val budgetsViewModel: BudgetsViewModel = viewModel(
+                    factory = BudgetsViewModelFactory(AppModule.presupuestoRepository, AppModule.categoriaRepository)
+                )
+                val uiState by budgetsViewModel.uiState.collectAsState()
+
+                BudgetsScreen(
+                    uiState = uiState,
+                    onNewBudget = { budgetsViewModel.showNewBudgetForm() },
+                    onEditBudget = budgetsViewModel::showEditBudget,
+                    onDeleteRequest = budgetsViewModel::requestDelete,
+                    onDismissForm = budgetsViewModel::dismissForm,
+                    onCategoriaSelect = budgetsViewModel::updateCategoria,
+                    onLimiteChange = budgetsViewModel::updateLimite,
+                    onPeriodoSelect = budgetsViewModel::updatePeriodo,
+                    onSavePresupuesto = { budgetsViewModel.savePresupuesto {} },
+                    onConfirmDelete = budgetsViewModel::confirmDelete,
+                    onDismissDelete = budgetsViewModel::dismissDeleteConfirm,
+                    onBackClick = dropUnlessResumed {
+                        backStack.removeLastOrNull()
+                    },
+                    onNextClick = dropUnlessResumed {
                         backStack.add(Home)
                     }
                 )
@@ -176,14 +203,4 @@ fun OnboardingNavGraph(
             }
         }
     )
-}
-
-@Composable
-private fun PlaceholderScreen(title: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = title)
-    }
 }

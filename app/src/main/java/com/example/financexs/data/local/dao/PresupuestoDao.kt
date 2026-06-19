@@ -18,6 +18,9 @@ interface PresupuestoDao {
     @Query("SELECT * FROM presupuestos WHERE categoriaId = :categoriaId")
     fun getPresupuestosByCategoria(categoriaId: Long): Flow<List<PresupuestoEntity>>
 
+    @Query("SELECT EXISTS(SELECT 1 FROM presupuestos WHERE categoriaId = :categoriaId AND periodo = :periodo AND id != :excludeId)")
+    suspend fun existsByCategoriaAndPeriodo(categoriaId: Long, periodo: String, excludeId: Long = 0): Boolean
+
     @Query("SELECT * FROM presupuestos WHERE id = :id")
     suspend fun getPresupuestoById(id: Long): PresupuestoEntity?
 

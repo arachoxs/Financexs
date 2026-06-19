@@ -109,10 +109,12 @@ fun CategoriesScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             if (categorias.isEmpty()) {
-                EmptyCategoriesState(
-                    tipo = emptyText,
-                    onNewCategory = onNewCategory
-                )
+                Box(modifier = Modifier.weight(1f)) {
+                    EmptyCategoriesState(
+                        tipo = emptyText,
+                        onNewCategory = onNewCategory
+                    )
+                }
             } else {
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(12.dp),

@@ -32,26 +32,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.dp
-import com.example.financexs.ui.components.AccountFormContent
-import com.example.financexs.ui.components.AccountFormState
+import com.example.financexs.data.local.enums.PeriodoPresupuesto
+import com.example.financexs.domain.model.Categoria
+import com.example.financexs.domain.model.Presupuesto
 import com.example.financexs.ui.components.AddItemCard
+import com.example.financexs.ui.components.BudgetFormContent
+import com.example.financexs.ui.components.BudgetFormState
 import com.example.financexs.ui.components.FormBottomSheet
 import com.example.financexs.ui.components.ItemCard
 import com.example.financexs.ui.components.formatAmountWithSeparators
-import com.example.financexs.ui.components.iconosCuentas
 
 @Composable
-fun AccountsScreen(
-    uiState: AccountsUiState,
-    onNewAccount: () -> Unit,
-    onEditAccount: (com.example.financexs.domain.model.Cuenta) -> Unit,
-    onDeleteRequest: (com.example.financexs.domain.model.Cuenta) -> Unit,
+fun BudgetsScreen(
+    uiState: BudgetsUiState,
+    onNewBudget: () -> Unit,
+    onEditBudget: (Presupuesto) -> Unit,
+    onDeleteRequest: (Presupuesto) -> Unit,
     onDismissForm: () -> Unit,
-    onNombreChange: (String) -> Unit,
-    onColorSelect: (String) -> Unit,
-    onIconSelect: (String) -> Unit,
-    onSaldoChange: (String) -> Unit,
-    onSaveCuenta: () -> Unit,
+    onCategoriaSelect: (Long) -> Unit,
+    onLimiteChange: (String) -> Unit,
+    onPeriodoSelect: (PeriodoPresupuesto) -> Unit,
+    onSavePresupuesto: () -> Unit,
     onConfirmDelete: () -> Unit,
     onDismissDelete: () -> Unit,
     onBackClick: () -> Unit,
@@ -70,7 +71,7 @@ fun AccountsScreen(
             Spacer(modifier = Modifier.height(60.dp))
 
             Text(
-                text = "Tus Cuentas",
+                text = "Presupuestos",
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -78,7 +79,7 @@ fun AccountsScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Crea al menos una cuenta para comenzar",
+                text = "Configura límites de gasto por categoría",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -86,39 +87,48 @@ fun AccountsScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "${uiState.cuentas.size} cuenta${if (uiState.cuentas.size != 1) "s" else ""} creada${if (uiState.cuentas.size != 1) "s" else ""}",
+                text = "${uiState.presupuestos.size} presupuesto${if (uiState.presupuestos.size != 1) "s" else ""} configurado${if (uiState.presupuestos.size != 1) "s" else ""}",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            if (uiState.cuentas.isEmpty()) {
+            if (uiState.presupuestos.isEmpty()) {
                 Box(modifier = Modifier.weight(1f)) {
-                    EmptyAccountsState(onNewAccount = onNewAccount)
+                    EmptyBudgetsState(onNewBudget = onNewBudget)
                 }
             } else {
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    itemsIndexed(uiState.cuentas) { index, cuenta ->
+                    itemsIndexed(uiState.presupuestos) { index, presupuesto ->
+                        val categoria = uiState.categoriasGasto.find { it.id == presupuesto.categoriaId }
+                        val periodoLabel = when (presupuesto.periodo) {
+                            PeriodoPresupuesto.DIARIO -> "Diario"
+                            PeriodoPresupuesto.SEMANAL -> "Semanal"
+                            PeriodoPresupuesto.MENSUAL -> "Mensual"
+                        }
+                        val icon = com.example.financexs.ui.components.iconosCategoriasGasto
+                            .find { it.name == categoria?.icono }?.icon
+                            ?: com.example.financexs.ui.components.iconosCategoriasGasto.first().icon
+
                         ItemCard(
-                            nombre = cuenta.nombre,
-                            colorHex = cuenta.color,
-                            icon = iconosCuentas.find { it.name == cuenta.icono }?.icon
-                                ?: iconosCuentas.first().icon,
-                            subtitulo = "$ ${formatAmountWithSeparators(cuenta.saldo.toPlainString())}",
-                            onEdit = { onEditAccount(cuenta) },
-                            onDelete = { onDeleteRequest(cuenta) },
-                            canDelete = uiState.cuentas.size > 1
+                            nombre = categoria?.nombre ?: "Sin categoría",
+                            colorHex = categoria?.color ?: "#8B5CF6",
+                            icon = icon,
+                            subtitulo = "$ ${formatAmountWithSeparators(presupuesto.limite.toPlainString())} / $periodoLabel",
+                            onEdit = { onEditBudget(presupuesto) },
+                            onDelete = { onDeleteRequest(presupuesto) },
+                            canDelete = true
                         )
                     }
 
                     item {
                         AddItemCard(
-                            label = "Agregar una cuenta nueva",
-                            onClick = onNewAccount
+                            label = "Agregar un presupuesto",
+                            onClick = onNewBudget
                         )
                     }
                 }
@@ -142,19 +152,31 @@ fun AccountsScreen(
                     )
                 }
 
-                Button(
-                    onClick = onNextClick,
-                    modifier = Modifier.weight(1f),
-                    enabled = uiState.cuentas.isNotEmpty(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
-                ) {
-                    Text(
-                        text = "Siguiente",
-                        style = MaterialTheme.typography.labelLarge
-                    )
+                if (uiState.presupuestos.isEmpty()) {
+                    OutlinedButton(
+                        onClick = onNextClick,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text(
+                            text = "Omitir",
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
+                } else {
+                    Button(
+                        onClick = onNextClick,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text(
+                            text = "Finalizar",
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
                 }
             }
 
@@ -163,32 +185,22 @@ fun AccountsScreen(
 
         FormBottomSheet(
             visible = uiState.showDialog,
-            title = if (uiState.editingCuenta != null) "Editar Cuenta" else "Nueva Cuenta",
+            title = if (uiState.editingPresupuesto != null) "Editar Presupuesto" else "Nuevo Presupuesto",
             onDismiss = onDismissForm
         ) {
-            uiState.formError?.let { error ->
-                Text(
-                    text = error,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-
-            AccountFormContent(
-                state = AccountFormState(
-                    nombre = uiState.nombreCuenta,
-                    nombreError = uiState.nombreError,
-                    colorSeleccionado = uiState.colorSeleccionado,
-                    iconoSeleccionado = uiState.iconoSeleccionado,
-                    saldoInicial = uiState.saldoInicial,
-                    moneda = uiState.moneda
+            BudgetFormContent(
+                state = BudgetFormState(
+                    categoriaId = uiState.categoriaId,
+                    limite = uiState.limite,
+                    periodo = uiState.periodo,
+                    categoriaError = uiState.categoriaError,
+                    limiteError = uiState.limiteError,
+                    formError = uiState.formError
                 ),
-                onNombreChange = onNombreChange,
-                onColorSelect = onColorSelect,
-                onIconSelect = onIconSelect,
-                onSaldoChange = onSaldoChange
+                categorias = uiState.categoriasGasto,
+                onCategoriaSelect = onCategoriaSelect,
+                onLimiteChange = onLimiteChange,
+                onPeriodoSelect = onPeriodoSelect
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -204,7 +216,7 @@ fun AccountsScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
-                onClick = onSaveCuenta,
+                onClick = onSavePresupuesto,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !uiState.isSaving,
                 shape = RoundedCornerShape(16.dp),
@@ -219,18 +231,18 @@ fun AccountsScreen(
             }
         }
 
-        uiState.showDeleteConfirm?.let { cuenta ->
+        uiState.showDeleteConfirm?.let { presupuesto ->
             AlertDialog(
                 onDismissRequest = onDismissDelete,
                 title = {
                     Text(
-                        text = "Eliminar cuenta",
+                        text = "Eliminar presupuesto",
                         style = MaterialTheme.typography.titleLarge
                     )
                 },
                 text = {
                     Text(
-                        text = "¿Estás seguro de que deseas eliminar \"${cuenta.nombre}\"?",
+                        text = "¿Estás seguro de que deseas eliminar este presupuesto?",
                         style = MaterialTheme.typography.bodyLarge
                     )
                 },
@@ -250,7 +262,7 @@ fun AccountsScreen(
 }
 
 @Composable
-private fun EmptyAccountsState(onNewAccount: () -> Unit) {
+private fun EmptyBudgetsState(onNewBudget: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -283,15 +295,23 @@ private fun EmptyAccountsState(onNewAccount: () -> Unit) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Aún no tienes cuentas",
+            text = "Aún no tienes presupuestos",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        Text(
+            text = "Es opcional, pero te ayuda a controlar tus gastos",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         Button(
-            onClick = onNewAccount,
+            onClick = onNewBudget,
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary
@@ -304,7 +324,7 @@ private fun EmptyAccountsState(onNewAccount: () -> Unit) {
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Crear primera cuenta",
+                text = "Crear primer presupuesto",
                 style = MaterialTheme.typography.labelLarge
             )
         }
