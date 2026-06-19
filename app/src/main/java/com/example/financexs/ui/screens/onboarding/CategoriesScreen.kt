@@ -189,9 +189,11 @@ fun CategoriesScreen(
             CategoryFormContent(
                 state = CategoryFormState(
                     nombre = uiState.nombreCategoria,
+                    nombreError = uiState.nombreError,
                     color = uiState.colorSeleccionado,
                     icono = uiState.iconoSeleccionado,
-                    nombreError = uiState.formError
+                    iconoError = uiState.iconoError,
+                    formError = uiState.formError
                 ),
                 icons = icons,
                 onNameChange = onNombreChange,

@@ -179,30 +179,30 @@ data class XxxUiState(
 
 ### Display rules
 
-- `nombreError` → passed to `FormTextField(error = ...)` — shows as `supportingText`
-- `iconoError` → shown as `Text(bodySmall, error)` below the `IconPicker`
+- `nombreError` → right-aligned next to the field label via `FormTextField(error = ...)`
+- `iconoError` → right-aligned next to the "Icono" label in a `Row` with `weight(1f)`
 - `formError` → shown as `Text(bodySmall, error)` at the TOP of the form (banner)
 - NO errors floating between form and buttons
 
 ### Visual layout
 
 ```
-┌─────────────────────────────────────┐
-│  Error al guardar. Intenta de nuevo.│  ← formError
-│                                     │
-│  Nombre                             │
-│  ┌─────────────────────────────┐    │
-│  │ Alimentación                │    │
-│  └─────────────────────────────┘    │
-│  Ya existe una categoría con ese    │  ← nombreError
-│  nombre                             │
-│                                     │
-│  Icono                              │
-│  [🛒] [🚗] [🏠] [❤️]              │
-│  Selecciona un icono                │  ← iconoError
-│                                     │
-│  [Cancelar]  [Guardar]              │
-└─────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────┐
+│  Error al guardar. Intenta de nuevo.                          │  ← formError
+│                                                               │
+│  Nombre    El nombre debe tener al menos 2 caracteres        │  ← nombreError
+│  ┌───────────────────────────────────────────────────────────┐│
+│  │ Alimentación                                              ││
+│  └───────────────────────────────────────────────────────────┘│
+│                                                               │
+│  Color                                                        │
+│  [■] [■] [■] [■] [■] [■]                                     │
+│                                                               │
+│  Icono    Selecciona un icono                                 │  ← iconoError
+│  [🛒] [🚗] [🏠] [❤️]                                         │
+│                                                               │
+│  [Cancelar]  [Guardar]                                        │
+└───────────────────────────────────────────────────────────────┘
 ```
 
 ### Error mapping in Screen

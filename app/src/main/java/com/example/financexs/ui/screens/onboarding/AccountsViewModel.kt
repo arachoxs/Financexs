@@ -22,6 +22,7 @@ data class AccountsUiState(
     val saldoInicial: String = "",
     val moneda: String = "COP",
     val nombreError: String? = null,
+    val formError: String? = null,
     val isSaving: Boolean = false,
     val showDeleteConfirm: Cuenta? = null
 )
@@ -51,7 +52,8 @@ class AccountsViewModel(
                 iconoSeleccionado = "AccountBalance",
                 saldoInicial = "",
                 moneda = moneda,
-                nombreError = null
+                nombreError = null,
+                formError = null
             )
         }
     }
@@ -65,13 +67,14 @@ class AccountsViewModel(
                 colorSeleccionado = cuenta.color,
                 iconoSeleccionado = cuenta.icono,
                 saldoInicial = cuenta.saldo.toPlainString(),
-                nombreError = null
+                nombreError = null,
+                formError = null
             )
         }
     }
 
     fun dismissForm() {
-        _uiState.update { it.copy(showDialog = false, editingCuenta = null, nombreError = null) }
+        _uiState.update { it.copy(showDialog = false, editingCuenta = null, nombreError = null, formError = null) }
     }
 
     fun updateNombre(nombre: String) {
@@ -93,24 +96,32 @@ class AccountsViewModel(
     fun saveCuenta(onSuccess: () -> Unit) {
         val state = _uiState.value
 
-        if (state.nombreCuenta.trim().length < 2) {
-            _uiState.update { it.copy(nombreError = "El nombre debe tener al menos 2 caracteres") }
-            return
-        }
+        // Validate ALL fields — collect errors, don't return early
+        var nombreError: String? = null
 
         val nombreTrimmed = state.nombreCuenta.trim()
+
+        if (nombreTrimmed.length < 2) {
+            nombreError = "El nombre debe tener al menos 2 caracteres"
+        }
+
         val existsInSameType = state.cuentas.any {
             it.nombre.equals(nombreTrimmed, ignoreCase = true) &&
                 it.id != state.editingCuenta?.id
         }
         if (existsInSameType) {
-            _uiState.update { it.copy(nombreError = "Ya existe una cuenta con ese nombre") }
+            nombreError = "Ya existe una cuenta con ese nombre"
+        }
+
+        // If any validation errors, show ALL and return
+        if (nombreError != null) {
+            _uiState.update { it.copy(nombreError = nombreError, formError = null) }
             return
         }
 
         val saldo = state.saldoInicial.toBigDecimalOrNull() ?: BigDecimal.ZERO
 
-        _uiState.update { it.copy(isSaving = true, nombreError = null) }
+        _uiState.update { it.copy(isSaving = true, nombreError = null, formError = null) }
 
         viewModelScope.launch {
             try {
@@ -131,7 +142,7 @@ class AccountsViewModel(
                 _uiState.update { it.copy(isSaving = false, showDialog = false, editingCuenta = null) }
                 onSuccess()
             } catch (e: Exception) {
-                _uiState.update { it.copy(isSaving = false, nombreError = "Error al guardar. Intenta de nuevo.") }
+                _uiState.update { it.copy(isSaving = false, formError = "Error al guardar. Intenta de nuevo.") }
             }
         }
     }
@@ -148,7 +159,7 @@ class AccountsViewModel(
             try {
                 cuentaRepository.deleteCuenta(cuenta)
             } catch (e: Exception) {
-                // Error handling - the cuenta remains in the list
+                _uiState.update { it.copy(formError = "Error al eliminar. Intenta de nuevo.") }
             }
         }
     }

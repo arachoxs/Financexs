@@ -83,6 +83,16 @@ fun ProfileScreen(
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
             ) {
+                uiState.formError?.let { error ->
+                    Text(
+                        text = error,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
                 // Nombre
                 FormTextField(
                     value = uiState.nombre,

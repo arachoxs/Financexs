@@ -22,6 +22,8 @@ data class CategoriesUiState(
     val nombreCategoria: String = "",
     val colorSeleccionado: String = coloresDisponibles.first(),
     val iconoSeleccionado: String = "",
+    val nombreError: String? = null,
+    val iconoError: String? = null,
     val formError: String? = null,
     val isSaving: Boolean = false,
     val showDeleteConfirm: Categoria? = null
@@ -62,6 +64,8 @@ class CategoriesViewModel(
                 nombreCategoria = "",
                 colorSeleccionado = coloresDisponibles.first(),
                 iconoSeleccionado = "",
+                nombreError = null,
+                iconoError = null,
                 formError = null
             )
         }
@@ -75,17 +79,19 @@ class CategoriesViewModel(
                 nombreCategoria = categoria.nombre,
                 colorSeleccionado = categoria.color,
                 iconoSeleccionado = categoria.icono,
+                nombreError = null,
+                iconoError = null,
                 formError = null
             )
         }
     }
 
     fun dismissForm() {
-        _uiState.update { it.copy(showDialog = false, editingCategoria = null, formError = null) }
+        _uiState.update { it.copy(showDialog = false, editingCategoria = null, nombreError = null, iconoError = null, formError = null) }
     }
 
     fun updateNombre(nombre: String) {
-        _uiState.update { it.copy(nombreCategoria = nombre, formError = null) }
+        _uiState.update { it.copy(nombreCategoria = nombre, nombreError = null) }
     }
 
     fun updateColor(color: String) {
@@ -93,20 +99,22 @@ class CategoriesViewModel(
     }
 
     fun updateIcono(icono: String) {
-        _uiState.update { it.copy(iconoSeleccionado = icono) }
+        _uiState.update { it.copy(iconoSeleccionado = icono, iconoError = null) }
     }
 
     fun saveCategoria(onSuccess: () -> Unit) {
         val state = _uiState.value
 
+        // Validate ALL fields — collect errors, don't return early
+        var nombreError: String? = null
+        var iconoError: String? = null
+
         if (state.nombreCategoria.trim().length < 2) {
-            _uiState.update { it.copy(formError = "El nombre debe tener al menos 2 caracteres") }
-            return
+            nombreError = "El nombre debe tener al menos 2 caracteres"
         }
 
         if (state.iconoSeleccionado.isEmpty()) {
-            _uiState.update { it.copy(formError = "Selecciona un icono") }
-            return
+            iconoError = "Selecciona un icono"
         }
 
         val nombreTrimmed = state.nombreCategoria.trim()
@@ -114,13 +122,17 @@ class CategoriesViewModel(
             it.nombre.equals(nombreTrimmed, ignoreCase = true) &&
                 it.id != state.editingCategoria?.id
         }
-
         if (existsInSameType) {
-            _uiState.update { it.copy(formError = "Ya existe una categoría con ese nombre") }
+            nombreError = "Ya existe una categoría con ese nombre"
+        }
+
+        // If any validation errors, show ALL and return
+        if (nombreError != null || iconoError != null) {
+            _uiState.update { it.copy(nombreError = nombreError, iconoError = iconoError, formError = null) }
             return
         }
 
-        _uiState.update { it.copy(isSaving = true, formError = null) }
+        _uiState.update { it.copy(isSaving = true, nombreError = null, iconoError = null, formError = null) }
 
         viewModelScope.launch {
             try {

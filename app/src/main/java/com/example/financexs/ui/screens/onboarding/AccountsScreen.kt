@@ -164,6 +164,16 @@ fun AccountsScreen(
             title = if (uiState.editingCuenta != null) "Editar Cuenta" else "Nueva Cuenta",
             onDismiss = onDismissForm
         ) {
+            uiState.formError?.let { error ->
+                Text(
+                    text = error,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
             AccountFormContent(
                 state = AccountFormState(
                     nombre = uiState.nombreCuenta,

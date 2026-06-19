@@ -2,6 +2,7 @@ package com.example.financexs.ui.screens.onboarding
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.example.financexs.data.local.enums.TemaApp
 import com.example.financexs.data.repository.PerfilRepository
 import com.example.financexs.domain.model.Moneda
@@ -13,13 +14,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import androidx.lifecycle.viewModelScope
 
 data class OnboardingUiState(
     val nombre: String = "",
     val monedaSeleccionada: Moneda = monedasDisponibles.first(),
     val temaSeleccionado: TemaApp = TemaApp.SISTEMA,
     val nombreError: String? = null,
+    val formError: String? = null,
     val isSaving: Boolean = false
 )
 
@@ -51,18 +52,22 @@ class OnboardingViewModel(
             return
         }
 
-        _uiState.update { it.copy(isSaving = true, nombreError = null) }
+        _uiState.update { it.copy(isSaving = true, nombreError = null, formError = null) }
 
         viewModelScope.launch {
-            val perfil = Perfil(
-                id = 1,
-                nombre = state.nombre.trim(),
-                moneda = state.monedaSeleccionada.codigo,
-                tema = state.temaSeleccionado
-            )
-            perfilRepository.savePerfil(perfil)
-            _uiState.update { it.copy(isSaving = false) }
-            onSuccess()
+            try {
+                val perfil = Perfil(
+                    id = 1,
+                    nombre = state.nombre.trim(),
+                    moneda = state.monedaSeleccionada.codigo,
+                    tema = state.temaSeleccionado
+                )
+                perfilRepository.savePerfil(perfil)
+                _uiState.update { it.copy(isSaving = false) }
+                onSuccess()
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isSaving = false, formError = "Error al guardar. Intenta de nuevo.") }
+            }
         }
     }
 }
