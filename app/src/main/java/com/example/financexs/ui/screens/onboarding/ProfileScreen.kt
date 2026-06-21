@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.DarkMode
@@ -208,7 +209,9 @@ private fun MonedaCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.clickable(onClick = onClick),
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         border = BorderStroke(
             width = if (isSelected) 2.dp else 1.dp,
@@ -297,7 +300,9 @@ private fun TemaCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.clickable(onClick = onClick),
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         border = BorderStroke(
             width = if (isSelected) 2.dp else 1.dp,
