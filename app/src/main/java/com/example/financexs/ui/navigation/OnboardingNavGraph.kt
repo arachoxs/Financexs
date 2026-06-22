@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavKey
@@ -52,7 +53,10 @@ data object Home : NavKey
 fun OnboardingNavGraph(
     onComplete: () -> Unit = {}
 ) {
-    val backStack = rememberNavBackStack(OnboardingWelcome)
+    val initialKey = remember {
+        if (AppModule.preferencias.onboardingCompletado) Home else OnboardingWelcome
+    }
+    val backStack = rememberNavBackStack(initialKey)
     val viewModel: OnboardingViewModel = viewModel(
         factory = OnboardingViewModelFactory(AppModule.perfilRepository)
     )
@@ -198,6 +202,7 @@ fun OnboardingNavGraph(
             }
             entry<Home> {
                 LaunchedEffect(Unit) {
+                    AppModule.preferencias.onboardingCompletado = true
                     onComplete()
                 }
             }

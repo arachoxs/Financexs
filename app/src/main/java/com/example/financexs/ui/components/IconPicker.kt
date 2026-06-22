@@ -113,12 +113,13 @@ fun IconPicker(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(icons) { option ->
+        items(icons, key = { it.name }) { option ->
             val isSelected = option.name == selectedIcon
 
             Box(
                 modifier = Modifier
                     .size(48.dp)
+                    .clip(CircleShape)
                     .then(
                         if (isSelected) {
                             Modifier
@@ -129,7 +130,6 @@ fun IconPicker(
                                 .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
                         }
                     )
-                    .clip(CircleShape)
                     .clickable { onIconSelect(option.name) },
                 contentAlignment = Alignment.Center
             ) {

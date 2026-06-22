@@ -1,6 +1,7 @@
 package com.example.financexs.di
 
 import android.content.Context
+import com.example.financexs.data.local.PreferenciasApp
 import com.example.financexs.data.local.database.AppDatabase
 import com.example.financexs.data.local.dao.CuentaDao
 import com.example.financexs.data.local.dao.CategoriaDao
@@ -16,15 +17,25 @@ object AppModule {
     @Volatile
     private var database: AppDatabase? = null
 
+    @Volatile
+    private var preferenciasInstance: PreferenciasApp? = null
+
     @Synchronized
     fun init(context: Context) {
         if (database == null) {
             database = AppDatabase.getInstance(context)
         }
+        if (preferenciasInstance == null) {
+            preferenciasInstance = PreferenciasApp(context.applicationContext)
+        }
     }
 
     private fun getDatabase(): AppDatabase = database
         ?: throw IllegalStateException("AppModule.init(context) must be called before using dependencies")
+
+    val preferencias: PreferenciasApp
+        get() = preferenciasInstance
+            ?: throw IllegalStateException("AppModule.init(context) must be called before using dependencies")
 
     // DAOs
     val perfilDao: PerfilDao by lazy { getDatabase().perfilDao() }

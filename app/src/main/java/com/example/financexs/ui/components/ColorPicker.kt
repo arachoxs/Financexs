@@ -45,7 +45,7 @@ fun ColorPicker(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        items(coloresDisponibles) { colorHex ->
+        items(coloresDisponibles, key = { it }) { colorHex ->
             val color = Color(android.graphics.Color.parseColor(colorHex))
             val isSelected = colorHex == selectedColor
 
